@@ -119,8 +119,8 @@ function getAbilityimages(hero) {
     const link = skillImg.attributes['src'].value;
     hero.abilityImgLinks.push(link);
   });
-  console.log(hero);
 }
+
 function getAbilityDescriptions(hero) {
   hero.abilityDescriptions = [];
   const page = hero.page.window.document;
@@ -132,7 +132,6 @@ function getAbilityDescriptions(hero) {
   skillTitles.forEach(title => hero.abilityTitles.push(title.textContent.split('Link▶')[0].trim()));
 
 }
-
 
 function setHeroTalents(hero) {
   const page = hero.page.window.document;

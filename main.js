@@ -11,15 +11,14 @@ const options = {
   protocol: 'https://',
   method: 'GET',
   website: 'dota2.fandom.com',
-  host: encodeURI('dota2.fandom.com/ru/wiki/Heroes'),
+  host: encodeURI('dota2.fandom.com/ru/wiki/Герои'),
   path: '/',
-  // This is the only line that is new. `headers` is an object with the headers to request
   headers: {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
     'Accept': '*/*',
     'Accept-Encoding': 'null',
     'Connection': 'keep-alive',
-    'Host': encodeURIComponent('dota2.fandom.com/ru/wiki/Heroes'),
+    'Host': encodeURIComponent('dota2.fandom.com/ru/wiki/Герои'),
     'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7,uk;q=0.6,la;q=0.5'
   }
 };
@@ -35,9 +34,6 @@ const setRequestHeaders = req => {
   req.setRequestHeader('Accept-Language', options.headers['Accept-Language']);
 };
 
-// Parsing page
-
-
 function parsePage() {
   parseRequest.open('GET', options.protocol + options.host);
   setRequestHeaders(parseRequest);
@@ -48,6 +44,7 @@ function parsePage() {
     }
   };
   parseRequest.send();
+  return;
 }
 async function getHeroesLinks(doc) {
   if (!doc) return;
@@ -78,10 +75,10 @@ function getHeroPage(hero, link) {
   req.onreadystatechange = function() {
     if (req.readyState === req.DONE) {
       hero.page = (new DOMParser.JSDOM(req.responseText));
-
-      setHeroTalents(hero);
       setBasicHeroAttributes(hero);
-
+      getAbilityimages(hero);
+      getAbilityDescriptions(hero);
+      setHeroTalents(hero);
 
     }
   };
@@ -111,8 +108,31 @@ function setBasicHeroAttributes(hero) {
   const defaultStats = page.querySelectorAll('table.infobox tr:nth-child(3) table tbody tr td');
   defaultStats.forEach(el => hero.defaultStats.push(el.textContent.trim()));
 
+
+}
+
+function getAbilityimages(hero) {
+  hero.abilityImgLinks = [];
+  const page = hero.page.window.document;
+  const skillImgs = page.querySelectorAll('div.ico_active > a > img, div.ico_passive > a > img');
+  skillImgs.forEach(skillImg => {
+    const link = skillImg.attributes['src'].value;
+    hero.abilityImgLinks.push(link);
+  });
   console.log(hero);
 }
+function getAbilityDescriptions(hero) {
+  hero.abilityDescriptions = [];
+  const page = hero.page.window.document;
+  const skillDescriptions = page.querySelectorAll('div.ability-description > div:nth-child(2)');
+  skillDescriptions.forEach(el => hero.abilityDescriptions.push(el.textContent));
+
+  hero.abilityTitles = [];
+  const skillTitles = page.querySelectorAll('div.ability-background > div > div:nth-child(1)');
+  skillTitles.forEach(title => hero.abilityTitles.push(title.textContent.split('Link▶')[0].trim()));
+
+}
+
 
 function setHeroTalents(hero) {
   const page = hero.page.window.document;
@@ -120,7 +140,7 @@ function setHeroTalents(hero) {
   let count = 18;
   while (true) {
     const talentsDivs = page.querySelectorAll(`div div:nth-child(${count}) table tbody tr`);
-    if (talentsDivs[0] !== undefined) if (talentsDivs[0].textContent.trim() === 'Таланты героя') break;
+    if (talentsDivs[0]) if (talentsDivs[0].textContent.trim() === 'Таланты героя') break;
     count++;
   }
   const talentsDivs = page.querySelectorAll(`div div:nth-child(${count}) table tbody tr`);
@@ -128,6 +148,7 @@ function setHeroTalents(hero) {
     const trTalents = talentsDivs[i].querySelectorAll('td');
     trTalents.forEach(el => hero.talents.push(el.textContent.trim()));
   }
+  console.log(heroes);
 }
 
 parsePage();
@@ -153,6 +174,8 @@ const requestListener = function(req, res) {
     res.end(data, 'utf-8');
   }));
 };
+
+
 
 const server = http.createServer(requestListener);
 server.listen(port);

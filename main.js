@@ -1,3 +1,4 @@
+'use strict'
 const http = require('http');
 const XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 const fs = require('fs');
@@ -19,7 +20,7 @@ const options = {
     'Accept-Encoding': 'null',
     'Connection': 'keep-alive',
     'Host': encodeURIComponent('dota2.fandom.com/ru/wiki/Герои'),
-    'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7,uk;q=0.6,la;q=0.5'
+    'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7,uk;q=0.6,la;q=0.5' 
   }
 };
 
@@ -79,6 +80,7 @@ function getHeroPage(hero, link) {
       getAbilityimages(hero);
       getAbilityDescriptions(hero);
       setHeroTalents(hero);
+      recentChanges(hero);
 
     }
   };
@@ -107,8 +109,6 @@ function setBasicHeroAttributes(hero) {
 
   const defaultStats = page.querySelectorAll('table.infobox tr:nth-child(3) table tbody tr td');
   defaultStats.forEach(el => hero.defaultStats.push(el.textContent.trim()));
-
-
 }
 
 function getAbilityimages(hero) {
@@ -137,18 +137,20 @@ function getAbilityDescriptions(hero) {
 function setHeroTalents(hero) {
   const page = hero.page.window.document;
   hero.talents = [];
-  let count = 18;
-  while (true) {
-    const talentsDivs = page.querySelectorAll(`div div:nth-child(${count}) table tbody tr`);
-    if (talentsDivs[0]) if (talentsDivs[0].textContent.trim() === 'Таланты героя') break;
-    count++;
-  }
-  const talentsDivs = page.querySelectorAll(`div div:nth-child(${count}) table tbody tr`);
+  const talentsDivs = page.querySelectorAll('table.wikitable tbody tr');
   for (let i = 1; i < 5; i++) {
     const trTalents = talentsDivs[i].querySelectorAll('td');
     trTalents.forEach(el => hero.talents.push(el.textContent.trim()));
   }
-  console.log(heroes);
+}
+
+function recentChanges(hero) {
+  const page = hero.page.window.document;
+  hero.recentChanges = [];
+  const changes = page.querySelectorAll('div.updatetablebody div:nth-child(1) div#description');
+  hero.recentChanges.push(changes[0].textContent.trim());
+  hero.page = null;
+  console.log(hero);
 }
 
 parsePage();

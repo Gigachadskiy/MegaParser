@@ -1,4 +1,4 @@
-'use strict';
+
 const http = require('http');
 const XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 const fs = require('fs');
@@ -14,14 +14,16 @@ const options = {
   protocol: 'https://',
   method: 'GET',
   website: 'dota2.fandom.com',
-  host: encodeURI('dota2.fandom.com/ru/wiki/Герои'),
+  host: encodeURI('dota2.fandom.com/ru/wiki/Heroes'),
   path: '/',
   headers: {
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) ' +
+        'AppleWebKit/537.36 (KHTML, like Gecko) ' +
+        'Chrome/39.0.2171.95 Safari/537.36',
     'Accept': '*/*',
     'Accept-Encoding': 'null',
     'Connection': 'keep-alive',
-    'Host': encodeURIComponent('dota2.fandom.com/ru/wiki/Герои'),
+    'Host': encodeURIComponent('dota2.fandom.com/ru/wiki/Heroes'),
     'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7,uk;q=0.6,la;q=0.5'
   }
 };
@@ -30,6 +32,7 @@ const parseRequest = new XMLHttpRequest();
 let response = null;
 let parsedDocument = null;
 let heroes = [];
+const flagLoaded = []; let loadedIterator = 0;
 
 const setRequestHeaders = req => {
   req.setRequestHeader('User-Agent', options.headers['User-Agent']);
@@ -47,7 +50,6 @@ function parsePage() {
     }
   };
   parseRequest.send();
-  return;
 }
 async function getHeroesLinks(doc) {
   if (!doc) return;
@@ -83,7 +85,7 @@ function getHeroPage(hero, link) {
       getAbilityDescriptions(hero);
       setHeroTalents(hero);
       recentChanges(hero);
-
+      flagLoaded[--loadedIterator] = true;
     }
   };
   req.send();
@@ -91,15 +93,16 @@ function getHeroPage(hero, link) {
 
 function setBasicHeroAttributes(hero) {
   const page = hero.page.window.document;
-  let imgs = page.querySelectorAll('a.image img');
+  const imgs = page.querySelectorAll('a.image img');
   for (let i = 0; i < imgs.length; i++) {
-      if(imgs[i].alt && !imgs[i].alt.includes('Grow')) {
-        hero.img = imgs[i].attributes['src'].value;
-        break;
-      }
+    if (imgs[i].alt && !imgs[i].alt.includes('Grow')) {
+      hero.img = imgs[i].attributes['src'].value;
+      break;
+    }
   }
-  hero.attributes = []; // [ { start: 25, grow: 2 }, {...}, {}]
-  const attributesDivs = page.querySelectorAll('table.infobox tr:first-child div');
+  hero.attributes = [];
+  const attributesPath = 'table.infobox tr:first-child div';
+  const attributesDivs = page.querySelectorAll(attributesPath);
   console.log(attributesDivs);
   for (let i = 5; i <= 7; i++) {
     const attrString = attributesDivs[i].textContent.split(' + ');
@@ -108,14 +111,16 @@ function setBasicHeroAttributes(hero) {
   hero.firstLvlStats = [];
   hero.lastLvlStats = [];
   hero.defaultStats = [];
-  const stats = page.querySelectorAll('table.infobox tr:nth-child(2) table tr');
+  const statsPath = 'table.infobox tr:nth-child(2) table tr';
+  const stats = page.querySelectorAll(statsPath);
   for (let i = 1; i < stats.length; i++) {
     const trStats = stats[i].querySelectorAll('td');
     hero.firstLvlStats.push(trStats[1].textContent.trim());
     hero.lastLvlStats.push(trStats[4].textContent.trim());
   }
 
-  const defaultStats = page.querySelectorAll('table.infobox tr:nth-child(3) table tbody tr td');
+  const defaultPath = 'table.infobox tr:nth-child(3) table tbody tr td';
+  const defaultStats = page.querySelectorAll(defaultPath);
   defaultStats.forEach(el => hero.defaultStats.push(el.textContent.trim()));
 
 
@@ -124,7 +129,9 @@ function setBasicHeroAttributes(hero) {
 function getAbilityimages(hero) {
   hero.abilityImgLinks = [];
   const page = hero.page.window.document;
-  const skillImgs = page.querySelectorAll('div.ico_active > a > img, div.ico_passive > a > img, div.ico_autocast > a > img');
+  const skillImgs = page.querySelectorAll('div.ico_active > a > img, ' +
+      'div.ico_passive > a > img, ' +
+      'div.ico_autocast > a > img');
   skillImgs.forEach(skillImg => {
     const link = skillImg.attributes['src'].value;
     hero.abilityImgLinks.push(link);
@@ -134,15 +141,17 @@ function getAbilityimages(hero) {
 function getAbilityDescriptions(hero) {
   hero.abilityDescriptions = [];
   const page = hero.page.window.document;
-  const skillDescriptions = page.querySelectorAll('div.ability-description > div:nth-child(2)');
-  skillDescriptions.forEach(el => hero.abilityDescriptions.push(el.textContent));
+  const descriptionPath = 'div.ability-description > div:nth-child(2)';
+  const skillDescriptions = page.querySelectorAll(descriptionPath);
+  skillDescriptions.forEach(el =>
+    hero.abilityDescriptions.push(el.textContent)
+  );
 
   hero.abilityTitles = [];
-  const skillTitles = page.querySelectorAll('div.ability-background > div > div:nth-child(1)');
+  const titlesPath = 'div.ability-background > div > div:nth-child(1)';
+  const skillTitles = page.querySelectorAll(titlesPath);
   skillTitles.forEach(title => hero.abilityTitles.push(title.textContent.split('Link▶')[0].trim()));
-
 }
-
 
 function setHeroTalents(hero) {
   const page = hero.page.window.document;
@@ -150,14 +159,17 @@ function setHeroTalents(hero) {
   const talentsDivs = page.querySelectorAll('table.wikitable tbody tr');
   for (let i = 1; i < 5; i++) {
     const trTalents = talentsDivs[i].querySelectorAll('td');
-    trTalents.forEach(el => hero.talents.push(el.textContent.trim()));
+    trTalents.forEach(el =>
+      hero.talents.push(el.textContent.trim())
+    );
   }
 }
 
 function recentChanges(hero) {
   const page = hero.page.window.document;
   hero.recentChanges = [];
-  const changes = page.querySelectorAll('div.updatetablebody div:nth-child(1) div#description');
+  const path = 'div.updatetablebody div:nth-child(1) div#description';
+  const changes = page.querySelectorAll(path);
   hero.recentChanges.push(changes[0].textContent.trim());
   hero.page = null;
   console.log(hero);
@@ -168,30 +180,57 @@ parseRequest.onloadend = async () => {
   heroes = await getHeroesLinks(parsedDocument);
   heroes.forEach(hero => {
     getHeroPage(hero, hero.link);
+    flagLoaded.push(false);
+    loadedIterator++;
   });
 };
 
 
 const requestListener = function(req, res) {
-  res.setHeader('Content-Type', 'text/html');
-  if (!heroes.length) {
-      console.log('Server is loading or crashed');
-      return;
+  if (!heroes.length || !flagLoaded.reduce((prev, state) => prev && state)) {
+    console.log('Server is loading or crashed');
+    return;
   }
-  if(req.url === '/') {
+  if (req.url === '/') {
+    res.setHeader('Content-Type', 'text/html');
     fs.readFile(path.join(__dirname, 'pages/index.ejs'), 'utf-8', (err, data) => {
       if (err) throw new Error();
-      let compiledPage = ejs.render(data, {heroes: heroes});
+      const compiledPage = ejs.render(data, { heroes });
 
       res.setHeader('Status-Code', 200);
       res.end(compiledPage);
     });
     return;
   }
+  if (req.url.includes('hero')) {
+    res.setHeader('Content-Type', 'text/html');
+    fs.readFile(path.join(__dirname, 'pages/hero.ejs'), 'utf-8', (err, data) => {
+      if (err) throw new Error();
+      const name = (req.url.split('/')[2]).replace(/_/g, ' ');
+      const chosenHero = heroes.filter(el => el.name.includes(name))[0];
+      const compiledPage = ejs.render(data, { hero: chosenHero });
+
+      res.setHeader('Status-Code', 200);
+      res.end(compiledPage);
+    });
+    return;
+  }
+  console.log(req.url);
+  if (req.url.includes('favicon')) {
+    res.setHeader('Content-Type', 'image/png');
+    fs.readFile(path.join(__dirname, 'pages/favicon.png'), (err, data) => {
+      if (err) {
+        res.writeHead(400, { 'Content-type': 'text/html' });
+        console.log(err);
+        res.end('No such image');
+      } else {
+        res.writeHead(200, { 'Content-type': 'image/png' });
+        res.end(data);
+      }
+    });
+  }
 
 };
-
-
 
 const server = http.createServer(requestListener);
 server.listen(port);

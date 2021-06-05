@@ -1,9 +1,11 @@
-'use strict'
+'use strict';
 const http = require('http');
 const XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 const fs = require('fs');
 const DOMParser = require('jsdom');
 const heroDefaults = require('./Hero.interface.js');
+const ejs = require('ejs');
+const path = require('path');
 
 const port = '5050';
 const host = '127.0.0.1';
@@ -20,7 +22,7 @@ const options = {
     'Accept-Encoding': 'null',
     'Connection': 'keep-alive',
     'Host': encodeURIComponent('dota2.fandom.com/ru/wiki/Герои'),
-    'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7,uk;q=0.6,la;q=0.5' 
+    'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7,uk;q=0.6,la;q=0.5'
   }
 };
 
@@ -89,7 +91,13 @@ function getHeroPage(hero, link) {
 
 function setBasicHeroAttributes(hero) {
   const page = hero.page.window.document;
-  hero.img = page.querySelector('a.image img').attributes['src'].value;
+  let imgs = page.querySelectorAll('a.image img');
+  for (let i = 0; i < imgs.length; i++) {
+      if(imgs[i].alt && !imgs[i].alt.includes('Grow')) {
+        hero.img = imgs[i].attributes['src'].value;
+        break;
+      }
+  }
   hero.attributes = []; // [ { start: 25, grow: 2 }, {...}, {}]
   const attributesDivs = page.querySelectorAll('table.infobox tr:first-child div');
   console.log(attributesDivs);
@@ -109,6 +117,8 @@ function setBasicHeroAttributes(hero) {
 
   const defaultStats = page.querySelectorAll('table.infobox tr:nth-child(3) table tbody tr td');
   defaultStats.forEach(el => hero.defaultStats.push(el.textContent.trim()));
+
+
 }
 
 function getAbilityimages(hero) {
@@ -119,8 +129,8 @@ function getAbilityimages(hero) {
     const link = skillImg.attributes['src'].value;
     hero.abilityImgLinks.push(link);
   });
+  console.log(hero);
 }
-
 function getAbilityDescriptions(hero) {
   hero.abilityDescriptions = [];
   const page = hero.page.window.document;
@@ -132,6 +142,7 @@ function getAbilityDescriptions(hero) {
   skillTitles.forEach(title => hero.abilityTitles.push(title.textContent.split('Link▶')[0].trim()));
 
 }
+
 
 function setHeroTalents(hero) {
   const page = hero.page.window.document;
@@ -162,18 +173,22 @@ parseRequest.onloadend = async () => {
 
 
 const requestListener = function(req, res) {
-
   res.setHeader('Content-Type', 'text/html');
-  fs.readFile('./pages/index.html', ((err, data) => {
-    if (err) {
-      res.writeHead(500);
-      res.write('We didn`t find the page you`re looking for');
-      res.end();
+  if (!heroes.length) {
+      console.log('Server is loading or crashed');
       return;
-    }
-    res.writeHead(200, { 'content-type': 'text/html charset=UTF-8' });
-    res.end(data, 'utf-8');
-  }));
+  }
+  if(req.url === '/') {
+    fs.readFile(path.join(__dirname, 'pages/index.ejs'), 'utf-8', (err, data) => {
+      if (err) throw new Error();
+      let compiledPage = ejs.render(data, {heroes: heroes});
+
+      res.setHeader('Status-Code', 200);
+      res.end(compiledPage);
+    });
+    return;
+  }
+
 };
 
 

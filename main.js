@@ -124,7 +124,7 @@ function setBasicHeroAttributes(hero) {
 function getAbilityimages(hero) {
   hero.abilityImgLinks = [];
   const page = hero.page.window.document;
-  const skillImgs = page.querySelectorAll('div.ico_active > a > img, div.ico_passive > a > img');
+  const skillImgs = page.querySelectorAll('div.ico_active > a > img, div.ico_passive > a > img, div.ico_autocast > a > img');
   skillImgs.forEach(skillImg => {
     const link = skillImg.attributes['src'].value;
     hero.abilityImgLinks.push(link);

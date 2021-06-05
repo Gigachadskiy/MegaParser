@@ -129,8 +129,8 @@ function getAbilityimages(hero) {
     const link = skillImg.attributes['src'].value;
     hero.abilityImgLinks.push(link);
   });
-  console.log(hero);
 }
+
 function getAbilityDescriptions(hero) {
   hero.abilityDescriptions = [];
   const page = hero.page.window.document;

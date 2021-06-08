@@ -201,6 +201,13 @@ button {
     text-transform: none;
 }
 
+/* Correct the inability to style clickable types in iOS and Safari	*/
+button,
+[type="button"] {
+    -webkit-appearance: button;
+    appearance: button;
+}
+
 /* Remove the inner border and padding in Firefox	*/
 button::-moz-focus-inner,
 [type="button"]::-moz-focus-inner {
@@ -220,10 +227,7 @@ button:-moz-focusring,
     padding: 0;
 }
 
-/* Utiltities */
-.nowrap {
-    white-space: nowrap;
-}
+
 
 /* Article */
 article {
@@ -293,24 +297,13 @@ article {
     }
 }
 
-/**
- * # Semantic UI - 2.4.2
- * https://github.com/Semantic-Org/Semantic-UI
- * https://www.semantic-ui.com/
- * Copyright 2014 Contributors
- * Released under the MIT license
- * https://opensource.org/licenses/MIT
- */
+
 .grid {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     align-items: stretch;
     padding: 0;
-    /**
-     * Temporary hack to be sure avatar
-     * is rendered on print preview
-     */
     display: block !important;
 }
 .grid .grid {
@@ -530,11 +523,6 @@ article {
     width: 33%;
 }
 
-/* Language */
-.language {
-    font-weight: 600;
-    white-space: nowrap;
-}
 
 /* Labels */
 .labels > .label {
@@ -731,12 +719,6 @@ li.details > input {
     margin-left: -1.5em;
 }
 
-/* Highlighted list item */
-li.highlighted {
-    padding: 0.5em;
-    background: rgba(0, 0, 0, 0.04);
-    border-radius: 4px;
-}
 
 /* Bordered list item */
 li.bordered {
@@ -744,9 +726,6 @@ li.bordered {
     border-radius: 4px;
     padding: 0.5em;
     transition: all 0.2s linear;
-}
-li.bordered:hover {
-    background: #fafafa;
 }
 li.bordered > ul > li.details > div,
 li.bordered > ul > details > div {
@@ -776,121 +755,6 @@ li.bordered > ul > details > div {
     margin: 0;
 }
 
-/* Tags */
-.tags.small {
-    font-size: 0.88em;
-}
-.tags.bulleted .tag:not(:last-child):after {
-    content: "●";
-    display: inline-block;
-    font-family: "Arial";
-    font-size: 1rem;
-    margin: 0 0.25em 0 0.25em;
-}
-
-/* Print */
-@media print {
-    .page,
-    .page[style] {
-        padding: 0;
-        box-shadow: none;
-        border-color: transparent !important;
-    }
-    .grid {
-        display: block;
-    }
-    .avatar-wrapper {
-        padding: 0;
-    }
-    .contacts {
-        margin-top: 1em;
-    }
-    .contacts li a.website {
-        display: block;
-    }
-    .credits {
-        display: none;
-    }
-}
-
-/* Color */
-.color {
-    cursor: pointer;
-    white-space: nowrap;
-    background: inherit;
-    color: inherit;
-    font: inherit;
-    border: none;
-    margin: 0;
-    padding: 0;
-}
-.color:before {
-    content: " ";
-    display: inline-block;
-    border-radius: 100%;
-    margin: 0.27em;
-    height: 0.88em;
-    width: 0.88em;
-    vertical-align: top;
-    position: relative;
-}
-.color.midnightblue:before {
-    background-color: midnightblue;
-}
-.color.chartreuse:before {
-    background-color: chartreuse;
-}
-
-/* Audio button */
-button.audio {
-    cursor: pointer;
-    background: inherit;
-    font: inherit;
-    border: none;
-    margin: 0;
-    padding: 0;
-}
-button.audio svg {
-    height: 16px;
-    width: 16px;
-    vertical-align: text-top;
-}
-
-/* Resume */
-#resume {
-    color: inherit;
-    transition: 0.2s;
-    opacity: 0.75;
-    padding: 0 0.25em 0.25em 0.25em;
-    margin-left: -0.25em;
-    display: inline-block;
-}
-#resume:hover {
-    opacity: 1;
-}
-#resume .dots {
-    background: #808080;
-    color: white;
-    padding: 0 0.2em;
-    border-radius: 3px;
-    height: 1em;
-    line-height: 1em;
-    margin-top: 0.2857142857em;
-    float: left;
-    margin-right: 0.2857142857em;
-}
-#resume .dots .dot {
-    float: left;
-    height: 0.42857142857em;
-    width: 0.42857142857em;
-    background: white;
-    border-radius: 100%;
-    margin-top: 0.2857142857em;
-    vertical-align: top;
-}
-#resume .dots .dot:not(:last-child) {
-    margin-right: 0.2142857em;
-}
 
 /* Dialog */
 dialog {
@@ -905,13 +769,6 @@ dialog {
     top: 0;
     left: 0;
     background: white;
-}
-dialog .photos {
-    height: 100%;
-    width: 100%;
-    overflow: auto;
-    display: inline-flex;
-    -webkit-overflow-scrolling: touch;
 }
 dialog .photos img {
     display: block;
@@ -929,52 +786,7 @@ dialog:target ~ * {
     display: none;
 }
 
-/* Close */
-.close {
-    text-indent: -9999px;
-    position: absolute;
-    z-index: 1;
-    top: 2em;
-    left: 2em;
-    display: inline-block;
-    width: 4em;
-    height: 4em;
-    overflow: hidden;
-}
-.close:before,
-.close:after {
-    content: " ";
-    position: absolute;
-    width: 100%;
-    top: 50%;
-    left: 0;
-    margin-top: -1px;
-    background: white;
-    height: 1px;
-}
-.close:before {
-    transform: rotate(45deg);
-}
-.close:after {
-    transform: rotate(-45deg);
-}
 
-/* Credits */
-.credits {
-    text-align: right;
-    padding: 0.5em;
-    line-height: 1em;
-    opacity: 0.75;
-    transition: opacity 0.2s linear;
-}
-.credits:hover {
-    opacity: 1;
-}
-@media only screen and (max-width: 767px) {
-    .credits {
-        display: none;
-    }
-}
 
 /* Hide header, reveal footer */
 header {
